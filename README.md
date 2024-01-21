@@ -68,4 +68,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Author
 
-Your Name Srijan Chaudhary
+Srijan Chaudhary (5rijan)
