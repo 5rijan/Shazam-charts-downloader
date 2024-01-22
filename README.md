@@ -10,7 +10,7 @@ Shazam Charts Downloader is a Python script designed to effortlessly download mu
 
 - **Error Logging:** Any errors that occur during the download process are logged to a dedicated file (`app.log`). This feature facilitates troubleshooting and error tracking.
 
-- **Structured Data Storage:** The downloaded CSV files are organized into directories by country, city (if applicable), and date. This organization simplifies data management and facilitates further analysis.
+- **Structured Data Storage:** The downloaded CSV files are organized into directories by country, city (if applicable), and date. This organization simplifies data management and facilitates further analysis. (charts-csv)
 
 - **Rate Limiting:** The script incorporates a one-second delay between file downloads to adhere to potential server rate-limiting policies, promoting responsible and respectful data retrieval.
 
