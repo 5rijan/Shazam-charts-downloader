@@ -36,45 +36,57 @@ def countries():
 
 logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
-def main():
-    country_list = countries()
-    total_countries = len(country_list)
+def download_country(country, today, i, total_countries):
+    print(f"Downloading file for {country} ({i}/{total_countries}, {i/total_countries*100:.2f}%)")
 
+    # Split the country variable into country_name and city_name
+    parts = country.split('/')
+    country_name = parts[0]
+    city_name = parts[1] if len(parts) > 1 else ''
+
+    # Check if the country string contains a '/'
+    if city_name:
+        url = f'https://www.shazam.com/services/charts/csv/top-50/{country}/'
+    else:
+        url = f'https://www.shazam.com/services/charts/csv/top-200/{country_name}/'
+    
+    try:
+        response = requests.get(url, stream=True, timeout=10)
+        response.raise_for_status()  # Raise an exception if the request was unsuccessful
+    except (requests.exceptions.RequestException, requests.exceptions.Timeout) as err:
+        logging.error(f"Error occurred while downloading file for {country}: {err}")
+        return
+
+    # Create the necessary subdirectories
+    os.makedirs(os.path.join(today, country_name, city_name), exist_ok=True)
+    filename = f'{country_name}-{city_name}-{today}.csv' if city_name else f'{country_name}-{today}.csv'
+    with open(os.path.join(today, country_name, city_name, filename), 'wb') as file:
+        for data in response.iter_content(1024):
+            file.write(data)
+    time.sleep(1)
+    
+
+def main():
     # Get today's date and format it as DD-MM-YYYY
     today = datetime.now().strftime('%d-%m-%Y')
 
     # Create a new directory with today's date
     os.makedirs(today, exist_ok=True)
 
-    for i, country in enumerate(country_list, start=1):
-        print(f"Downloading file for {country} ({i}/{total_countries}, {i/total_countries*100:.2f}%)")
-        
-        # Split the country variable into country_name and city_name
-        parts = country.split('/')
-        country_name = parts[0]
-        city_name = parts[1] if len(parts) > 1 else ''
+    action = input("Do you want to (1) download the whole database, (2) update the whole database, or (3) download a specific country? Enter the number: ")
 
-        # Check if the country string contains a '/'
-        if city_name:
-            url = f'https://www.shazam.com/services/charts/csv/top-50/{country}/'
-        else:
-            url = f'https://www.shazam.com/services/charts/csv/top-200/{country_name}/'
-        
-        try:
-            response = requests.get(url, stream=True, timeout=10)
-            response.raise_for_status()  # Raise an exception if the request was unsuccessful
-        except (requests.exceptions.RequestException, requests.exceptions.Timeout) as err:
-            logging.error(f"Error occurred while downloading file for {country}: {err}")
-            continue
-
-        # Create the necessary subdirectories
-        os.makedirs(os.path.join(today, country_name, city_name), exist_ok=True)
-        filename = f'{country_name}-{city_name}-{today}.csv' if city_name else f'{country_name}-{today}.csv'
-        with open(os.path.join(today, country_name, city_name, filename), 'wb') as file:
-            for data in response.iter_content(1024):
-                file.write(data)
-        time.sleep(1)
+    if action == "1" or action == "2":
+        country_list = countries()
+        total_countries = len(country_list)
+        for i, country in enumerate(country_list, start=1):
+            download_country(country, today, i, total_countries)
+    elif action == "3":
+        country = input("Enter the country (and optionally city) in the format 'country/city': ")
+        download_country(country, today, 1, 1)
+    else:
+        print("Invalid input. Please run the script again.")
 
 if __name__ == "__main__":
     main()
+
 
