@@ -36,7 +36,7 @@ def countries():
 
 logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
-def download_country(country, today, i, total_countries):
+def download_country(country, today, i, total_countries, use_subdirectories):
     print(f"Downloading file for {country} ({i}/{total_countries}, {i/total_countries*100:.2f}%)")
 
     # Split the country variable into country_name and city_name
@@ -58,9 +58,15 @@ def download_country(country, today, i, total_countries):
         return
 
     # Create the necessary subdirectories
-    os.makedirs(os.path.join(today, country_name, city_name), exist_ok=True)
-    filename = f'{country_name}-{city_name}-{today}.csv' if city_name else f'{country_name}-{today}.csv'
-    with open(os.path.join(today, country_name, city_name, filename), 'wb') as file:
+    if use_subdirectories:
+        os.makedirs(os.path.join(today, country_name, city_name), exist_ok=True)
+        filename = f'{country_name}-{city_name}-{today}.csv' if city_name else f'{country_name}-{today}.csv'
+        filepath = os.path.join(today, country_name, city_name, filename)
+    else:
+        filename = f'{country_name}-{city_name}-{today}.csv' if city_name else f'{country_name}-{today}.csv'
+        filepath = os.path.join(today, filename)
+
+    with open(filepath, 'wb') as file:
         for data in response.iter_content(1024):
             file.write(data)
     time.sleep(1)
@@ -74,19 +80,21 @@ def main():
     os.makedirs(today, exist_ok=True)
 
     action = input("Do you want to (1) download the whole database, (2) update the whole database, or (3) download a specific country? Enter the number: ")
+    use_subdirectories = input("Do you want to save the files in subdirectories? (yes/no): ") == "yes"
 
     if action == "1" or action == "2":
         country_list = countries()
         total_countries = len(country_list)
         for i, country in enumerate(country_list, start=1):
-            download_country(country, today, i, total_countries)
+            download_country(country, today, i, total_countries, use_subdirectories)
     elif action == "3":
         country = input("Enter the country (and optionally city) in the format 'country/city': ")
-        download_country(country, today, 1, 1)
+        download_country(country, today, 1, 1, use_subdirectories)
     else:
         print("Invalid input. Please run the script again.")
 
 if __name__ == "__main__":
     main()
+
 
 
